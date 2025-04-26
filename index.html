@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生活方式型態測驗 - 複選加權版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .option-card {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .option-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .option-card.selected {
+            border-color: #4F46E5;
+            background-color: #EEF2FF;
+        }
+        
+        .progress-bar {
+            transition: width 0.5s ease;
+        }
+        
+        .result-card {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease;
+        }
+        
+        .result-card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.8s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .type-card {
+            transition: all 0.3s ease;
+        }
+        
+        .type-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .medal {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .medal-gold {
+            background: linear-gradient(135deg, #FFD700 0%, #FFC107 100%);
+            color: #7D5700;
+        }
+        
+        .medal-silver {
+            background: linear-gradient(135deg, #E0E0E0 0%, #BDBDBD 100%);
+            color: #616161;
+        }
+        
+        .medal-bronze {
+            background: linear-gradient(135deg, #D7995B 0%, #B17846 100%);
+            color: #6D4C2F;
+        }
+        
+        .chart-bar {
+            transition: width 1s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- 開始頁面 -->
+        <div id="start-screen" class="bg-white rounded-2xl shadow-lg p-8 mb-8 text-center">
+            <h1 class="text-3xl font-bold text-indigo-800 mb-6">生活方式型態測驗</h1>
+            <p class="text-lg text-gray-700 mb-4">複選加權版 (6題)</p>
+            <p class="text-gray-600 mb-8">透過 6 個問題，找出最適合你的生活方式型態與學群推薦！</p>
+            
+            <div class="grid grid-cols-3 gap-4 mb-8">
+                <div class="bg-indigo-50 p-4 rounded-lg text-center type-card">
+                    <div class="text-indigo-600 font-bold">A</div>
+                    <div class="text-sm">冒險探索生活型</div>
+                </div>
+                <div class="bg-pink-50 p-4 rounded-lg text-center type-card">
+                    <div class="text-pink-600 font-bold">B</div>
+                    <div class="text-sm">療癒成長生活型</div>
+                </div>
+                <div class="bg-amber-50 p-4 rounded-lg text-center type-card">
+                    <div class="text-amber-600 font-bold">C</div>
+                    <div class="text-sm">自由創作生活型</div>
+                </div>
+                <div class="bg-emerald-50 p-4 rounded-lg text-center type-card">
+                    <div class="text-emerald-600 font-bold">D</div>
+                    <div class="text-sm">安定溫暖生活型</div>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-lg text-center type-card">
+                    <div class="text-blue-600 font-bold">E</div>
+                    <div class="text-sm">影響世界生活型</div>
+                </div>
+                <div class="bg-violet-50 p-4 rounded-lg text-center type-card">
+                    <div class="text-violet-600 font-bold">F</div>
+                    <div class="text-sm">深度專研生活型</div>
+                </div>
+            </div>
+            
+            <div class="bg-indigo-50 p-4 rounded-lg mb-8">
+                <p class="text-indigo-800 font-medium">📝 測驗說明</p>
+                <p class="text-gray-700">每題可選擇 1-2 個選項，請選擇最符合你的選項</p>
+            </div>
+            
+            <button id="start-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-8 rounded-full shadow-md transition duration-300 text-lg">開始測驗</button>
+        </div>
+
+        <!-- 測驗頁面 -->
+        <div id="quiz-screen" class="hidden">
+            <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 id="question-number" class="text-xl font-bold text-indigo-800">問題 1/6</h2>
+                    <div class="text-sm text-gray-500">完成度: <span id="progress-percent">0%</span></div>
+                </div>
+                
+                <div class="w-full bg-gray-200 rounded-full h-2.5 mb-8">
+                    <div id="progress-bar" class="bg-indigo-600 h-2.5 rounded-full progress-bar" style="width: 0%"></div>
+                </div>
+                
+                <h3 id="question-text" class="text-2xl font-medium text-gray-800 mb-4">你的理想日常是？</h3>
+                <p class="text-gray-500 mb-6">請選擇 1-2 個最符合你的選項</p>
+                
+                <div id="options-container" class="grid grid-cols-1 gap-4 mb-8">
+                    <!-- 選項會在這裡動態生成 -->
+                </div>
+                
+                <div class="flex justify-between">
+                    <button id="prev-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-6 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">上一題</button>
+                    <div id="selection-hint" class="text-amber-600 font-medium">請至少選擇 1 個選項</div>
+                    <button id="next-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-6 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">下一題</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 結果頁面 - 生活型態 -->
+        <div id="result-lifestyle-screen" class="hidden">
+            <div class="bg-white rounded-2xl shadow-lg p-8 mb-8 result-card">
+                <div class="text-center mb-8">
+                    <div class="inline-block p-3 rounded-full bg-indigo-100 mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">測驗結果</h2>
+                    <p class="text-gray-600">根據你的回答，以下是你的生活方式型態分析：</p>
+                </div>
+                
+                <!-- 生活型態結果 -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-bold text-indigo-800 mb-4">你的生活方式型態</h3>
+                    <div id="lifestyle-results" class="space-y-6">
+                        <!-- 生活型態結果會在這裡動態生成 -->
+                    </div>
+                </div>
+                
+                <!-- 分數分布 -->
+                <div class="mb-8">
+                    <h4 class="text-lg font-medium text-gray-800 mb-4">生活型態分數分布</h4>
+                    <div id="score-distribution" class="space-y-4">
+                        <!-- 分數分布會在這裡動態生成 -->
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <button id="show-majors-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-8 rounded-full shadow-md transition duration-300">查看學群推薦</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 結果頁面 - 學群推薦 -->
+        <div id="result-major-screen" class="hidden">
+            <div class="bg-white rounded-2xl shadow-lg p-8 mb-8 result-card">
+                <div class="text-center mb-8">
+                    <div class="inline-block p-3 rounded-full bg-indigo-100 mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">學群推薦結果</h2>
+                    <p class="text-gray-600">根據你的生活方式型態，以下是最適合你的學群推薦：</p>
+                </div>
+                
+                <!-- 學群推薦結果 -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-bold text-indigo-800 mb-4">最適合你的學群推薦</h3>
+                    <div id="major-results" class="space-y-6">
+                        <!-- 學群推薦結果會在這裡動態生成 -->
+                    </div>
+                </div>
+                
+                <div class="text-center space-x-4">
+                    <button id="back-to-lifestyle-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-3 px-8 rounded-full shadow-md transition duration-300">返回生活型態</button>
+                    <button id="restart-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-8 rounded-full shadow-md transition duration-300">重新測驗</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 測驗數據
+        const quizData = [
+            {
+                question: "你的理想日常是？",
+                options: [
+                    { 
+                        text: "自助旅行、走在異國小巷", 
+                        weights: [
+                            { type: "A", value: 1.0 },
+                            { type: "C", value: 0.3 }
+                        ]
+                    },
+                    { 
+                        text: "陪伴朋友成長、參加公益志工", 
+                        weights: [
+                            { type: "B", value: 1.0 },
+                            { type: "D", value: 0.5 }
+                        ]
+                    },
+                    { 
+                        text: "一個人在畫室、咖啡廳創作", 
+                        weights: [
+                            { type: "C", value: 1.0 },
+                            { type: "F", value: 0.4 }
+                        ]
+                    },
+                    { 
+                        text: "策劃一場讓社群震撼的活動", 
+                        weights: [
+                            { type: "E", value: 1.0 },
+                            { type: "A", value: 0.5 }
+                        ]
+                    }
+                ]
+            },
+            {
+                question: "遇到挑戰時，你最直覺的反應？",
+                options: [
+                    { 
+                        text: "超想嘗試，不怕失敗", 
+                        weights: [
+                            { type: "A", value: 1.0 },
+                            { type: "E", value: 0.4 }
+                        ]
+                    },
+                    { 
+                        text: "冷靜規劃，把事情穩定推進", 
+                        weights: [
+                            { type: "D", value: 1.0 },
+                            { type: "F", value: 0.5 }
+                        ]
+                    },
+                    { 
+                        text: "感受情緒、關注他人的感受", 
+                        weights: [
+                            { type: "B", value: 1.0 },
+                            { type: "C", value: 0.3 }
+                        ]
+                    },
+                    { 
+                        text: "靈機一動，想出創新的解法", 
+                        weights: [
+                            { type: "C", value: 1.0 },
+                            { type: "A", value: 0.4 }
+                        ]
+                    }
+                ]
+            },
+            {
+                question: "最吸引你的生活畫面？",
+                options: [
+                    { 
+                        text: "無計畫地流浪一整個月", 
+                        weights: [
+                            { type: "A", value: 1.0 },
+                            { type: "C", value: 0.5 }
+                        ]
+                    },
+                    { 
+                        text: "讓一個孩子因你而找到夢想", 
+                        weights: [
+                            { type: "B", value: 1.0 },
+                            { type: "D", value: 0.5 }
+                        ]
+                    },
+                    { 
+                        text: "成為專業領域的意見領袖", 
+                        weights: [
+                            { type: "E", value: 1.0 },
+                            { type: "F", value: 0.5 }
+                        ]
+                    },
+                    { 
+                        text: "深耕一個冷門卻有趣的領域", 
+                        weights: [
+                            { type: "F", value: 1.0 },
+                            { type: "C", value: 0.4 }
+                        ]
+                    }
+                ]
+            },
+            {
+                question: "工作對你來說最重要的是？",
+                options: [
+                    { 
+                        text: "有機會接觸不同文化、挑戰新事物", 
+                        weights: [
+                            { type: "A", value: 1.0 },
+                            { type: "E", value: 0.3 }
+                        ]
+                    },
+                    { 
+                        text: "建立深厚關係、陪伴成長", 
+                        weights: [
+                            { type: "B", value: 1.0 },
+                            { type: "D", value: 0.5 }
+                        ]
+                    },
+                    { 
+                        text: "能持續創作，表達自己", 
+                        weights: [
+                            { type: "C", value: 1.0 },
+                            { type: "F", value: 0.4 }
+                        ]
+                    },
+                    { 
+                        text: "投入重要議題，推動改變", 
+                        weights: [
+                            { type: "E", value: 1.0 },
+                            { type: "A", value: 0.5 }
+                        ]
+                    }
+                ]
+            },
+            {
+                question: "如果有一整年自由安排，你會？",
+                options: [
+                    { 
+                        text: "背包客旅行10個國家", 
+                        weights: [
+                            { type: "A", value: 1.0 },
+                            { type: "C", value: 0.4 }
+                        ]
+                    },
+                    { 
+                        text: "成為心靈導師、陪伴成長", 
+                        weights: [
+                            { type: "B", value: 1.0 },
+                            { type: "D", value: 0.5 }
+                        ]
+                    },
+                    { 
+                        text: "創作自己的作品集或品牌", 
+                        weights: [
+                            { type: "C", value: 1.0 },
+                            { type: "A", value: 0.5 }
+                        ]
+                    },
+                    { 
+                        text: "專注深耕一個新領域，成為專家", 
+                        weights: [
+                            { type: "F", value: 1.0 },
+                            { type: "E", value: 0.4 }
+                        ]
+                    }
+                ]
+            },
+            {
+                question: "你心中最嚮往的價值是？",
+                options: [
+                    { 
+                        text: "冒險自由", 
+                        weights: [
+                            { type: "A", value: 1.0 },
+                            { type: "C", value: 0.4 }
+                        ]
+                    },
+                    { 
+                        text: "溫暖支持", 
+                        weights: [
+                            { type: "B", value: 1.0 },
+                            { type: "D", value: 0.5 }
+                        ]
+                    },
+                    { 
+                        text: "創新自我", 
+                        weights: [
+                            { type: "C", value: 1.0 },
+                            { type: "A", value: 0.5 }
+                        ]
+                    },
+                    { 
+                        text: "改變世界", 
+                        weights: [
+                            { type: "E", value: 1.0 },
+                            { type: "F", value: 0.5 }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        // 生活型態描述
+        const typeDescriptions = {
+            "A": {
+                title: "冒險探索生活型",
+                code: "A型",
+                description: "世界太大，不待在原地！喜歡探索不同文化，嘗試新事物，每天都想在未知中冒險與成長。",
+                color: "from-indigo-50 to-blue-50",
+                textColor: "text-indigo-800",
+                bgColor: "bg-indigo-600",
+                jobs: [
+                    "國際交流人員",
+                    "自由接案旅遊工作者",
+                    "外派駐點人員",
+                    "探險作家、Vlogger"
+                ],
+                majors: [
+                    { name: "觀光休閒群", weight: 90 },
+                    { name: "國際關係群", weight: 80 },
+                    { name: "地理群", weight: 70 }
+                ]
+            },
+            "B": {
+                title: "療癒成長生活型",
+                code: "B型",
+                description: "喜歡慢慢陪伴，看見他人成長的過程。渴望讓自己和世界變得更溫暖有力量。",
+                color: "from-pink-50 to-rose-50",
+                textColor: "text-pink-800",
+                bgColor: "bg-pink-600",
+                jobs: [
+                    "心理諮詢師",
+                    "教育工作者",
+                    "社工師",
+                    "健康推廣與護理相關職業"
+                ],
+                majors: [
+                    { name: "心理群", weight: 90 },
+                    { name: "教育群", weight: 85 },
+                    { name: "醫護群", weight: 80 }
+                ]
+            },
+            "C": {
+                title: "自由創作生活型",
+                code: "C型",
+                description: "用作品表達靈魂，不受限地創造。希望生活就是一場無邊無際的藝術與靈感之旅。",
+                color: "from-amber-50 to-yellow-50",
+                textColor: "text-amber-800",
+                bgColor: "bg-amber-600",
+                jobs: [
+                    "藝術創作者",
+                    "設計師",
+                    "作家／編劇",
+                    "自媒體經營者"
+                ],
+                majors: [
+                    { name: "藝術群", weight: 95 },
+                    { name: "設計群", weight: 90 },
+                    { name: "傳播群", weight: 85 }
+                ]
+            },
+            "D": {
+                title: "安定溫暖生活型",
+                code: "D型",
+                description: "喜歡有規律、有歸屬感的生活。渴望建立穩定的人際關係和溫暖的居所。",
+                color: "from-emerald-50 to-green-50",
+                textColor: "text-emerald-800",
+                bgColor: "bg-emerald-600",
+                jobs: [
+                    "行政管理人員",
+                    "公職人員",
+                    "財務專員",
+                    "教育行政人員"
+                ],
+                majors: [
+                    { name: "管理群", weight: 90 },
+                    { name: "財金群", weight: 85 },
+                    { name: "教育群", weight: 80 }
+                ]
+            },
+            "E": {
+                title: "影響世界生活型",
+                code: "E型",
+                description: "希望自己的行動能帶來改變。渴望領導、策劃、推動新的計畫與改變潮流。",
+                color: "from-blue-50 to-sky-50",
+                textColor: "text-blue-800",
+                bgColor: "bg-blue-600",
+                jobs: [
+                    "創業家",
+                    "政治工作者",
+                    "公關行銷人員",
+                    "社會運動倡議者"
+                ],
+                majors: [
+                    { name: "管理群", weight: 95 },
+                    { name: "政治群", weight: 90 },
+                    { name: "傳播群", weight: 80 }
+                ]
+            },
+            "F": {
+                title: "深度專研生活型",
+                code: "F型",
+                description: "喜歡鑽研、深度學習。希望專心在知識、技術或研究領域中，慢慢成就一番事業。",
+                color: "from-violet-50 to-purple-50",
+                textColor: "text-violet-800",
+                bgColor: "bg-violet-600",
+                jobs: [
+                    "學者研究員",
+                    "專業技術工程師",
+                    "資料科學家",
+                    "專業顧問"
+                ],
+                majors: [
+                    { name: "理工群", weight: 95 },
+                    { name: "文史哲群", weight: 85 },
+                    { name: "社會科學群", weight: 80 }
+                ]
+            }
+        };
+
+        // 顏色對應
+        const typeColors = {
+            "A": { bg: "bg-indigo-100", text: "text-indigo-800", bar: "bg-indigo-600" },
+            "B": { bg: "bg-pink-100", text: "text-pink-800", bar: "bg-pink-600" },
+            "C": { bg: "bg-amber-100", text: "text-amber-800", bar: "bg-amber-600" },
+            "D": { bg: "bg-emerald-100", text: "text-emerald-800", bar: "bg-emerald-600" },
+            "E": { bg: "bg-blue-100", text: "text-blue-800", bar: "bg-blue-600" },
+            "F": { bg: "bg-violet-100", text: "text-violet-800", bar: "bg-violet-600" }
+        };
+
+        // 測驗狀態
+        let currentQuestion = 0;
+        let scores = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
+        let userAnswers = [];
+        let sortedLifestyles = [];
+        let sortedMajors = [];
+        let percentages = {};
+
+        // DOM 元素
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultLifestyleScreen = document.getElementById('result-lifestyle-screen');
+        const resultMajorScreen = document.getElementById('result-major-screen');
+        const startBtn = document.getElementById('start-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const questionNumber = document.getElementById('question-number');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const progressBar = document.getElementById('progress-bar');
+        const progressPercent = document.getElementById('progress-percent');
+        const selectionHint = document.getElementById('selection-hint');
+        const lifestyleResults = document.getElementById('lifestyle-results');
+        const majorResults = document.getElementById('major-results');
+        const scoreDistribution = document.getElementById('score-distribution');
+        const showMajorsBtn = document.getElementById('show-majors-btn');
+        const backToLifestyleBtn = document.getElementById('back-to-lifestyle-btn');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // 開始測驗
+        startBtn.addEventListener('click', () => {
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            loadQuestion(0);
+        });
+
+        // 重新測驗
+        restartBtn.addEventListener('click', () => {
+            currentQuestion = 0;
+            scores = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
+            userAnswers = [];
+            sortedLifestyles = [];
+            sortedMajors = [];
+            percentages = {};
+            resultMajorScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            loadQuestion(0);
+        });
+
+        // 顯示學群推薦
+        showMajorsBtn.addEventListener('click', () => {
+            resultLifestyleScreen.classList.add('hidden');
+            resultMajorScreen.classList.remove('hidden');
+            
+            // 顯示結果卡片動畫
+            setTimeout(() => {
+                document.querySelector('#result-major-screen .result-card').classList.add('show');
+            }, 100);
+            
+            // 顯示學群推薦
+            showMajorResults();
+        });
+
+        // 返回生活型態
+        backToLifestyleBtn.addEventListener('click', () => {
+            resultMajorScreen.classList.add('hidden');
+            resultLifestyleScreen.classList.remove('hidden');
+        });
+
+        // 上一題
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestion > 0) {
+                // 移除當前問題的分數
+                if (userAnswers[currentQuestion]) {
+                    userAnswers[currentQuestion].forEach(optionIndex => {
+                        const option = quizData[currentQuestion].options[optionIndex];
+                        option.weights.forEach(weight => {
+                            scores[weight.type] -= weight.value;
+                        });
+                    });
+                }
+                
+                currentQuestion--;
+                loadQuestion(currentQuestion);
+            }
+        });
+
+        // 下一題
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestion < quizData.length - 1) {
+                currentQuestion++;
+                loadQuestion(currentQuestion);
+            } else {
+                showResult();
+            }
+        });
+
+        // 載入問題
+        function loadQuestion(index) {
+            // 更新問題
+            questionNumber.textContent = `問題 ${index + 1}/${quizData.length}`;
+            questionText.textContent = quizData[index].question;
+            
+            // 更新進度條
+            const progress = ((index) / quizData.length) * 100;
+            progressBar.style.width = `${progress}%`;
+            progressPercent.textContent = `${Math.round(progress)}%`;
+            
+            // 更新按鈕狀態
+            prevBtn.disabled = index === 0;
+            nextBtn.textContent = index === quizData.length - 1 ? '查看結果' : '下一題';
+            
+            // 檢查是否已選擇
+            const hasSelection = userAnswers[index] && userAnswers[index].length > 0;
+            nextBtn.disabled = !hasSelection;
+            selectionHint.style.visibility = hasSelection ? 'hidden' : 'visible';
+            
+            // 清空選項容器
+            optionsContainer.innerHTML = '';
+            
+            // 添加選項
+            quizData[index].options.forEach((option, optionIndex) => {
+                const isSelected = userAnswers[index] && userAnswers[index].includes(optionIndex);
+                
+                const optionCard = document.createElement('div');
+                optionCard.className = `option-card p-4 rounded-lg cursor-pointer hover:bg-gray-50 ${isSelected ? 'selected' : ''}`;
+                
+                // 選項內容
+                const optionContent = document.createElement('div');
+                optionContent.className = 'flex items-center';
+                
+                // 複選框
+                const checkbox = document.createElement('div');
+                checkbox.className = `w-6 h-6 rounded-md border-2 border-gray-300 flex items-center justify-center mr-3 ${isSelected ? 'bg-indigo-600 border-indigo-600' : ''}`;
+                if (isSelected) {
+                    checkbox.innerHTML = '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+                }
+                
+                // 選項文字
+                const optionText = document.createElement('div');
+                optionText.className = 'flex-1';
+                optionText.innerHTML = `<p class="text-gray-800">${option.text}</p>`;
+                
+                // 組合選項
+                optionContent.appendChild(checkbox);
+                optionContent.appendChild(optionText);
+                optionCard.appendChild(optionContent);
+                
+                // 點擊事件
+                optionCard.addEventListener('click', () => {
+                    // 初始化當前問題的答案陣列
+                    if (!userAnswers[index]) {
+                        userAnswers[index] = [];
+                    }
+                    
+                    // 檢查是否已選擇
+                    const selectedIndex = userAnswers[index].indexOf(optionIndex);
+                    
+                    if (selectedIndex === -1) {
+                        // 檢查是否已選擇兩個選項
+                        if (userAnswers[index].length >= 2) {
+                            // 移除第一個選擇的選項分數
+                            const firstOptionIndex = userAnswers[index][0];
+                            const firstOption = quizData[index].options[firstOptionIndex];
+                            firstOption.weights.forEach(weight => {
+                                scores[weight.type] -= weight.value;
+                            });
+                            
+                            // 移除第一個選擇
+                            userAnswers[index].shift();
+                            
+                            // 更新UI
+                            const firstOptionCard = optionsContainer.children[firstOptionIndex];
+                            firstOptionCard.classList.remove('selected');
+                            const firstCheckbox = firstOptionCard.querySelector('div > div:first-child');
+                            firstCheckbox.innerHTML = '';
+                            firstCheckbox.classList.remove('bg-indigo-600', 'border-indigo-600');
+                        }
+                        
+                        // 添加新選擇
+                        userAnswers[index].push(optionIndex);
+                        
+                        // 添加分數
+                        option.weights.forEach(weight => {
+                            scores[weight.type] += weight.value;
+                        });
+                        
+                        // 更新UI
+                        optionCard.classList.add('selected');
+                        checkbox.classList.add('bg-indigo-600', 'border-indigo-600');
+                        checkbox.innerHTML = '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+                    } else {
+                        // 移除選擇
+                        userAnswers[index].splice(selectedIndex, 1);
+                        
+                        // 移除分數
+                        option.weights.forEach(weight => {
+                            scores[weight.type] -= weight.value;
+                        });
+                        
+                        // 更新UI
+                        optionCard.classList.remove('selected');
+                        checkbox.classList.remove('bg-indigo-600', 'border-indigo-600');
+                        checkbox.innerHTML = '';
+                    }
+                    
+                    // 檢查是否有選擇
+                    const hasSelection = userAnswers[index].length > 0;
+                    nextBtn.disabled = !hasSelection;
+                    selectionHint.style.visibility = hasSelection ? 'hidden' : 'visible';
+                });
+                
+                optionsContainer.appendChild(optionCard);
+            });
+        }
+
+        // 顯示結果
+        function showResult() {
+            quizScreen.classList.add('hidden');
+            resultLifestyleScreen.classList.remove('hidden');
+            
+            // 計算總分
+            let totalScore = 0;
+            for (const type in scores) {
+                totalScore += scores[type];
+            }
+            
+            // 計算百分比
+            percentages = {};
+            for (const type in scores) {
+                percentages[type] = (scores[type] / totalScore) * 100;
+            }
+            
+            // 排序生活型態
+            sortedLifestyles = Object.entries(scores)
+                .sort((a, b) => b[1] - a[1])
+                .map(([type, score]) => ({
+                    type,
+                    score,
+                    percentage: percentages[type]
+                }));
+            
+            // 顯示前三名生活型態
+            lifestyleResults.innerHTML = '';
+            
+            const topLifestyles = sortedLifestyles.slice(0, 3);
+            const medals = ['medal-gold', 'medal-silver', 'medal-bronze'];
+            const medalEmojis = ['🥇', '🥈', '🥉'];
+            
+            topLifestyles.forEach((lifestyle, index) => {
+                const { type, score, percentage } = lifestyle;
+                const typeInfo = typeDescriptions[type];
+                
+                // 計算每個問題對該生活型態的貢獻
+                let questionContributions = '';
+                userAnswers.forEach((answer, qIndex) => {
+                    if (answer) {
+                        let questionScore = 0;
+                        answer.forEach(optionIndex => {
+                            const option = quizData[qIndex].options[optionIndex];
+                            const weight = option.weights.find(w => w.type === type);
+                            if (weight) {
+                                questionScore += weight.value;
+                            }
+                        });
+                        if (questionScore > 0) {
+                            questionContributions += `
+                                <div class="text-sm text-gray-600 mb-1">
+                                    Q${qIndex + 1}: ${questionScore.toFixed(1)}分
+                                </div>
+                            `;
+                        }
+                    }
+                });
+                
+                const lifestyleCard = document.createElement('div');
+                lifestyleCard.className = `fade-in bg-gradient-to-r ${typeInfo.color} rounded-xl p-6`;
+                lifestyleCard.style.animationDelay = `${index * 0.2}s`;
+                
+                lifestyleCard.innerHTML = `
+                    <div class="flex items-center mb-3">
+                        <div class="medal ${medals[index]} font-bold">${medalEmojis[index]}</div>
+                        <h4 class="text-xl font-bold ${typeInfo.textColor}">${index === 0 ? '你的第一生活方式' : `第${index + 1}生活方式`}：${typeInfo.title}</h4>
+                    </div>
+                    <p class="text-gray-700 mb-3">${typeInfo.description}</p>
+                    <div class="mb-3">
+                        <p class="text-sm font-medium text-gray-700 mb-1">各題得分：</p>
+                        ${questionContributions}
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="inline-block px-3 py-1 ${typeInfo.bgColor} text-white text-sm rounded-full">${typeInfo.code}</span>
+                        <span class="text-gray-600 font-medium">總分：${score.toFixed(1)}分 (${Math.round(percentage)}%)</span>
+                    </div>
+                `;
+                
+                lifestyleResults.appendChild(lifestyleCard);
+            });
+            
+            // 更新分數分布
+            scoreDistribution.innerHTML = '';
+            
+            sortedLifestyles.forEach((lifestyle, index) => {
+                const { type, score, percentage } = lifestyle;
+                const typeColor = typeColors[type];
+                
+                const scoreBar = document.createElement('div');
+                scoreBar.className = 'fade-in';
+                scoreBar.style.animationDelay = `${index * 0.1}s`;
+                scoreBar.innerHTML = `
+                    <div class="flex items-center mb-1">
+                        <div class="w-8 h-8 rounded-full ${typeColor.bg} ${typeColor.text} flex items-center justify-center font-bold mr-2">${type}</div>
+                        <div class="text-sm font-medium">${typeDescriptions[type].title}</div>
+                        <div class="ml-auto text-sm font-medium">${score.toFixed(1)}分 (${Math.round(percentage)}%)</div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="${typeColor.bar} h-2.5 rounded-full chart-bar" style="width: 0%"></div>
+                    </div>
+                `;
+                
+                scoreDistribution.appendChild(scoreBar);
+                
+                // 動畫效果
+                setTimeout(() => {
+                    const chartBar = scoreBar.querySelector('.chart-bar');
+                    chartBar.style.width = `${percentage}%`;
+                }, 800 + index * 100);
+            });
+            
+            // 顯示結果卡片動畫
+            setTimeout(() => {
+                document.querySelector('#result-lifestyle-screen .result-card').classList.add('show');
+            }, 100);
+        }
+
+        // 顯示學群推薦結果
+        function showMajorResults() {
+            // 顯示前三名學群推薦
+            majorResults.innerHTML = '';
+            
+            // 學群對應的代表性學系
+            const majorDepartments = {
+                "觀光休閒群": ["觀光學系", "休閒遊憩管理學系", "餐旅管理學系"],
+                "國際關係群": ["國際關係學系", "外交學系", "區域研究學系"],
+                "地理群": ["地理學系", "都市計劃學系", "環境資源學系"],
+                "心理群": ["心理學系", "諮商與輔導學系", "臨床心理學系"],
+                "教育群": ["教育學系", "特殊教育學系", "幼兒教育學系"],
+                "醫護群": ["護理學系", "醫學系", "物理治療學系"],
+                "藝術群": ["美術學系", "音樂學系", "戲劇學系"],
+                "設計群": ["視覺傳達設計學系", "工業設計學系", "建築學系"],
+                "傳播群": ["大眾傳播學系", "新聞學系", "廣告學系"],
+                "管理群": ["企業管理學系", "財務管理學系", "行銷管理學系"],
+                "財金群": ["財務金融學系", "會計學系", "經濟學系"],
+                "政治群": ["政治學系", "公共行政學系", "社會學系"],
+                "理工群": ["電機工程學系", "資訊工程學系", "機械工程學系"],
+                "文史哲群": ["中文學系", "歷史學系", "哲學系"],
+                "社會科學群": ["社會學系", "人類學系", "社會工作學系"]
+            };
+            
+            // 重新計算學群推薦分數，考慮生活型態排名
+            const majorScores = {};
+            
+            // 根據生活型態排名加權計算學群推薦
+            sortedLifestyles.forEach((lifestyle, rankIndex) => {
+                const { type, percentage } = lifestyle;
+                const typeInfo = typeDescriptions[type];
+                
+                // 調整排名加權係數，使影響更平衡
+                const rankWeights = [1.0, 0.8, 0.6, 0.4, 0.2, 0.1];
+                const rankWeight = rankWeights[rankIndex] || 0.1;
+                
+                // 計算每個學群的推薦分數
+                typeInfo.majors.forEach(major => {
+                    const majorScore = (major.weight * (percentage / 100) * rankWeight);
+                    
+                    if (!majorScores[major.name]) {
+                        majorScores[major.name] = majorScore;
+                    } else {
+                        majorScores[major.name] += majorScore;
+                    }
+                });
+            });
+            
+            // 重新排序學群推薦
+            const sortedMajors = Object.entries(majorScores)
+                .sort((a, b) => b[1] - a[1])
+                .map(([name, score]) => ({ name, score }));
+            
+            const topMajors = sortedMajors.slice(0, 3);
+            const majorColors = ['bg-indigo-600', 'bg-pink-600', 'bg-amber-600'];
+            const majorBgColors = ['bg-indigo-50', 'bg-pink-50', 'bg-amber-50'];
+            const majorTextColors = ['text-indigo-800', 'text-pink-800', 'text-amber-800'];
+            const medals = ['medal-gold', 'medal-silver', 'medal-bronze'];
+            const medalEmojis = ['🥇', '🥈', '🥉'];
+            
+            topMajors.forEach((major, index) => {
+                const { name, score } = major;
+                const departments = majorDepartments[name] || [];
+                
+                const majorCard = document.createElement('div');
+                majorCard.className = `fade-in ${majorBgColors[index]} rounded-xl p-6`;
+                majorCard.style.animationDelay = `${index * 0.2}s`;
+                
+                // 找出哪些生活型態推薦了這個學群，並按排名排序
+                const recommendingTypes = [];
+                for (const type in typeDescriptions) {
+                    const typeInfo = typeDescriptions[type];
+                    const hasMajor = typeInfo.majors.some(m => m.name === name);
+                    if (hasMajor) {
+                        recommendingTypes.push(type);
+                    }
+                }
+                
+                // 按生活型態排名排序
+                recommendingTypes.sort((a, b) => {
+                    const rankA = sortedLifestyles.findIndex(l => l.type === a);
+                    const rankB = sortedLifestyles.findIndex(l => l.type === b);
+                    return rankA - rankB;
+                });
+                
+                // 生成推薦理由
+                let reasonHTML = '';
+                recommendingTypes.forEach(type => {
+                    const typeInfo = typeDescriptions[type];
+                    const majorInfo = typeInfo.majors.find(m => m.name === name);
+                    if (majorInfo) {
+                        const typePercentage = percentages[type];
+                        const rankIndex = sortedLifestyles.findIndex(l => l.type === type);
+                        const rankWeights = [1.0, 0.8, 0.6, 0.4, 0.2, 0.1];
+                        const rankWeight = rankWeights[rankIndex] || 0.1;
+                        const weightedScore = majorInfo.weight * rankWeight;
+                        
+                        if (typePercentage > 5) { // 只顯示有意義的百分比
+                            reasonHTML += `<li>
+                                <span class="${typeColors[type].text} font-medium">${typeInfo.title}</span> 
+                                (排名第${rankIndex + 1}名) 
+                                推薦指數 ${weightedScore.toFixed(1)}（佔你結果的 ${Math.round(typePercentage)}%）
+                            </li>`;
+                        }
+                    }
+                });
+                
+                // 生成代表性學系列表
+                let departmentsHTML = '';
+                if (departments.length > 0) {
+                    departmentsHTML = `
+                        <div class="mt-3">
+                            <p class="text-sm font-medium text-gray-700 mb-2">代表性學系：</p>
+                            <div class="flex flex-wrap gap-2">
+                                ${departments.map(dept => `
+                                    <span class="px-2 py-1 bg-white rounded-full text-sm text-gray-600 border border-gray-200">
+                                        ${dept}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                majorCard.innerHTML = `
+                    <div class="flex items-center mb-3">
+                        <div class="medal ${medals[index]} font-bold">${medalEmojis[index]}</div>
+                        <h4 class="text-xl font-bold ${majorTextColors[index]}">${name}</h4>
+                    </div>
+                    <div class="mb-3">
+                        <p class="text-gray-700 font-medium mb-2">推薦理由：</p>
+                        <ul class="list-disc pl-5 text-sm text-gray-600 space-y-1">
+                            ${reasonHTML}
+                        </ul>
+                    </div>
+                    ${departmentsHTML}
+                    <div class="w-full bg-white rounded-full h-2.5 mt-4">
+                        <div class="${majorColors[index]} h-2.5 rounded-full chart-bar" style="width: 0%"></div>
+                    </div>
+                `;
+                
+                majorResults.appendChild(majorCard);
+                
+                // 動畫效果
+                setTimeout(() => {
+                    const chartBar = majorCard.querySelector('.chart-bar');
+                    const maxScore = topMajors[0].score;
+                    const percentage = (score / maxScore) * 100;
+                    chartBar.style.width = `${percentage}%`;
+                }, 500 + index * 200);
+            });
+        }
+    </script>
+</body>
+</html>
